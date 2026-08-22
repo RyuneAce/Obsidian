@@ -8,7 +8,16 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-hacquire_dir = os.path.abspath(os.path.join(script_dir, ".."))
+
+def find_root_dir():
+    cur = script_dir
+    for _ in range(3):
+        cur = os.path.dirname(cur)
+        if os.path.exists(os.path.join(cur, "inventory")) or os.path.exists(os.path.join(cur, "customer_data.parquet")):
+            return cur
+    return os.path.abspath(os.path.join(script_dir, ".."))
+
+hacquire_dir = find_root_dir()
 customers_json_path = os.path.join(script_dir, "customers.json")
 parquet_output_path = os.path.join(hacquire_dir, "customer_data.parquet")
 csv_output_path = os.path.join(hacquire_dir, "customer_data.csv")

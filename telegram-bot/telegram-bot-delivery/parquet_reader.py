@@ -8,10 +8,32 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-hacquire_dir = os.path.abspath(os.path.join(script_dir, ".."))
+
+def find_root_dir():
+    cur = script_dir
+    for _ in range(3):
+        cur = os.path.dirname(cur)
+        if os.path.exists(os.path.join(cur, "inventory")) or os.path.exists(os.path.join(cur, "customer_data.parquet")):
+            return cur
+    return os.path.abspath(os.path.join(script_dir, ".."))
+
+hacquire_dir = find_root_dir()
 parquet_path = os.path.join(hacquire_dir, "customer_data.parquet")
-customers_json_path = os.path.join(hacquire_dir, "telegram-bot-customer", "customers.json")
-customer_export_script = os.path.join(hacquire_dir, "telegram-bot-customer", "export_parquet.py")
+
+def find_customer_paths():
+    candidates = [
+        os.path.join(script_dir, "..", "telegram-bot-customer"),
+        os.path.join(script_dir, "..", "customer"),
+        os.path.join(hacquire_dir, "telegram-bot", "telegram-bot-customer"),
+        os.path.join(hacquire_dir, "telegram-bot", "customer"),
+        os.path.join(hacquire_dir, "telegram-bot-customer"),
+    ]
+    for c in candidates:
+        if os.path.exists(os.path.join(c, "customers.json")):
+            return os.path.join(c, "customers.json"), os.path.join(c, "export_parquet.py")
+    return os.path.join(candidates[0], "customers.json"), os.path.join(candidates[0], "export_parquet.py")
+
+customers_json_path, customer_export_script = find_customer_paths()
 
 def get_parquet_df():
     # If parquet doesn't exist or is empty, try running export_parquet.py

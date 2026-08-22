@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 */node_modules/
+**/node_modules/
 
 # Environment variables
 .env
@@ -9,6 +10,8 @@ node_modules/
 *.env
 telegram-bot-customer/.env
 telegram-bot-delivery/.env
+telegram-bot/*/.env
+telegram-bot/**/.env
 
 # Build outputs & caches
 dist/

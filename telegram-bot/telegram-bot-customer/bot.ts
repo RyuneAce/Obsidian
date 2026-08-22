@@ -21,7 +21,20 @@ const bot = new Bot(TOKEN);
 // =============================================
 function getDeliveryBotApi(): { api: Api; targets: number[] } | null {
   try {
-    const deliveryDir = path.join(__dirname, '..', 'telegram-bot-delivery');
+    const candidateDirs = [
+      path.join(__dirname, '..', 'telegram-bot-delivery'),
+      path.join(__dirname, '..', 'delivery'),
+      path.join(__dirname, '..', '..', 'telegram-bot-delivery'),
+      path.join(__dirname, '..', '..', 'telegram-bot', 'telegram-bot-delivery'),
+      path.join(__dirname, '..', '..', 'telegram-bot', 'delivery'),
+    ];
+    let deliveryDir = candidateDirs[0];
+    for (const d of candidateDirs) {
+      if (fs.existsSync(path.join(d, '.env')) || fs.existsSync(path.join(d, 'agents.json'))) {
+        deliveryDir = d;
+        break;
+      }
+    }
     const envFile = path.join(deliveryDir, '.env');
     const agentsFile = path.join(deliveryDir, 'agents.json');
 

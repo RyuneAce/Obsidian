@@ -14,18 +14,19 @@ An intelligent, full-stack retail operations and hyper-local delivery management
 │   ├── server.js                # Express API server for stock & sales
 │   └── style.css                # Obsidian Dark theme styles
 │
-├── telegram-bot-customer/        # Customer Telegram Shopping Bot
-│   ├── bot.ts                   # Bot commands, 5-step checkout, interactive cart, search
-│   ├── cart.ts                  # Cart management, stock validation, item controls (+/-)
-│   ├── customer.ts              # Customer tiering, 10-min cancellation, schedules, referrals
-│   ├── data.ts                  # Live inventory sync, categories, 5 promo codes, dynamic deals
-│   ├── export_parquet.py        # Analytics pipeline: syncs customer orders to Parquet & CSV
-│   └── customers.json           # Customer database & order history
-│
-├── telegram-bot-delivery/        # Delivery Partner Dispatch Bot
-│   ├── bot.ts                   # Live claim pool, active order tracking, customer ratings
-│   ├── agents.json              # Delivery agent roster & session store
-│   └── parquet_reader.py        # Parquet data bridge for delivery operations
+├── telegram-bot/                 # Unified Telegram Bots Module
+│   ├── telegram-bot-customer/   # Customer Telegram Shopping Bot
+│   │   ├── bot.ts               # Bot commands, 5-step checkout, interactive cart, search
+│   │   ├── cart.ts              # Cart management, stock validation, item controls (+/-)
+│   │   ├── customer.ts          # Customer tiering, 10-min cancellation, schedules, referrals
+│   │   ├── data.ts              # Live inventory sync, categories, 5 promo codes, dynamic deals
+│   │   ├── export_parquet.py    # Analytics pipeline: syncs customer orders to Parquet & CSV
+│   │   └── customers.json       # Customer database & order history
+│   │
+│   └── telegram-bot-delivery/   # Delivery Partner Dispatch Bot
+│       ├── bot.ts               # Live claim pool, active order tracking, customer ratings
+│       ├── agents.json          # Delivery agent roster & session store
+│       └── parquet_reader.py    # Parquet data bridge for delivery operations
 │
 ├── customer_data.parquet         # High-performance columnar data lake for retail analytics
 └── customer_data.csv             # Tabular export for business intelligence
@@ -73,8 +74,8 @@ An intelligent, full-stack retail operations and hyper-local delivery management
 ### 2. Configure Environment Variables
 Copy `.env.example` to `.env` in both bot folders and enter your tokens:
 ```bash
-cp telegram-bot-customer/.env.example telegram-bot-customer/.env
-cp telegram-bot-delivery/.env.example telegram-bot-delivery/.env
+cp telegram-bot/telegram-bot-customer/.env.example telegram-bot/telegram-bot-customer/.env
+cp telegram-bot/telegram-bot-delivery/.env.example telegram-bot/telegram-bot-delivery/.env
 ```
 
 ### 3. Install Dependencies
@@ -83,10 +84,10 @@ cp telegram-bot-delivery/.env.example telegram-bot-delivery/.env
 cd inventory && npm install && cd ..
 
 # Customer bot
-cd telegram-bot-customer && npm install && cd ..
+cd telegram-bot/telegram-bot-customer && npm install && cd ../..
 
 # Delivery bot
-cd telegram-bot-delivery && npm install && cd ..
+cd telegram-bot/telegram-bot-delivery && npm install && cd ../..
 ```
 
 ### 4. Run the Ecosystem
@@ -95,10 +96,10 @@ cd telegram-bot-delivery && npm install && cd ..
 cd inventory && node server.js
 
 # Start Customer Bot
-cd telegram-bot-customer && npx tsx bot.ts
+cd telegram-bot/telegram-bot-customer && npx tsx bot.ts
 
 # Start Delivery Agent Bot
-cd telegram-bot-delivery && npx tsx bot.ts
+cd telegram-bot/telegram-bot-delivery && npx tsx bot.ts
 ```
 
 ---

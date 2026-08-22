@@ -53,7 +53,18 @@ export interface Product {
 // =============================================
 // LIVE INVENTORY SYNC
 // =============================================
-const INVENTORY_PATH = path.join(__dirname, '..', 'inventory', 'inventory.json');
+function findInventoryPath(): string {
+  const candidates = [
+    path.join(__dirname, '..', 'inventory', 'inventory.json'),
+    path.join(__dirname, '..', '..', 'inventory', 'inventory.json'),
+    path.join(__dirname, '..', '..', '..', 'inventory', 'inventory.json'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
+}
+const INVENTORY_PATH = findInventoryPath();
 
 export function getProducts(): Product[] {
   try {

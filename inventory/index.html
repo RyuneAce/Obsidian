@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventorary — Obsidian Retail Store</title>
+  <meta name="description" content="Real-time inventory management dashboard for Obsidian Retail Store. Track stock levels, restock costs, sales, and profit margins." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ─── ALERT BANNER ─────────────────────────────────────────────────────────── -->
+<div id="alert-banner" class="alert-banner hidden">
+  <span class="alert-icon">🔔</span>
+  <span id="alert-text"></span>
+  <button onclick="dismissBanner()" class="alert-dismiss">✕</button>
+</div>
+
+<!-- ─── SIDEBAR ──────────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">📦</div>
+    <div>
+      <div class="brand-name">Inventorary</div>
+      <div class="brand-sub">Obsidian Retail</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#overview" class="nav-item active" onclick="setActive(this)">
+      <span class="nav-icon">📊</span> Overview
+    </a>
+    <a href="#inventory" class="nav-item" onclick="setActive(this)">
+      <span class="nav-icon">🗃️</span> All Products
+    </a>
+    <a href="#low-stock" class="nav-item" onclick="setActive(this)">
+      <span class="nav-icon">⚠️</span> Low Stock
+      <span class="nav-badge" id="low-stock-badge">0</span>
+    </a>
+    <a href="#restock" class="nav-item" onclick="setActive(this)">
+      <span class="nav-icon">🔄</span> Restock Order
+    </a>
+    <a href="#pricing" class="nav-item" onclick="setActive(this)">
+      <span class="nav-icon">💰</span> Pricing & Profit
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="last-updated-label">Last Refreshed</div>
+    <div class="last-updated-time" id="last-updated">—</div>
+    <button class="refresh-btn" onclick="loadInventory()">↺ Refresh</button>
+  </div>
+</aside>
+
+<!-- ─── MAIN CONTENT ──────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div>
+      <h1 class="page-title">Inventory Dashboard</h1>
+      <p class="page-sub">Obsidian Retail Store · MG Road, Bengaluru</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="sendOwnerAlert()">🔔 Ping Owner</button>
+      <button class="btn btn-primary" onclick="openRestockModal()">+ Place Restock Order</button>
+    </div>
+  </header>
+
+  <!-- ─── SECTION: OVERVIEW ─────────────────────────────────────────────────── -->
+  <section id="overview" class="section">
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card stat-blue">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value" id="stat-total-items">—</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value" id="stat-low-count">—</div>
+        <div class="stat-label">Low / Critical Stock</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-icon">💸</div>
+        <div class="stat-value" id="stat-total-revenue">—</div>
+        <div class="stat-label">Total Revenue</div>
+      </div>
+      <div class="stat-card stat-purple">
+        <div class="stat-icon">📈</div>
+        <div class="stat-value" id="stat-total-profit">—</div>
+        <div class="stat-label">Total Profit</div>
+      </div>
+      <div class="stat-card stat-orange">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-value" id="stat-restock-cost">—</div>
+        <div class="stat-label">Restock Cost (Low Items)</div>
+      </div>
+      <div class="stat-card stat-teal">
+        <div class="stat-icon">🛒</div>
+        <div class="stat-value" id="stat-items-sold">—</div>
+        <div class="stat-label">Total Items Sold</div>
+      </div>
+    </div>
+
+    <!-- Stock Health Chart -->
+    <div class="card mt-6">
+      <div class="card-header">
+        <h2 class="card-title">📊 Stock Health Overview</h2>
+        <span class="card-hint">Current stock vs. thresholds</span>
+      </div>
+      <div class="stock-chart" id="stock-chart">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: ALL PRODUCTS ─────────────────────────────────────────────── -->
+  <section id="inventory" class="section mt-6">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">🗃️ All Products</h2>
+        <div class="filter-tabs" id="filter-tabs">
+          <button class="filter-tab active" onclick="filterProducts('all', this)">All</button>
+          <button class="filter-tab" onclick="filterProducts('ok', this)">✅ OK</button>
+          <button class="filter-tab" onclick="filterProducts('low', this)">🟡 Low</button>
+          <button class="filter-tab" onclick="filterProducts('critical', this)">🔴 Critical</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="inv-table" id="products-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Received</th>
+              <th>Sold</th>
+              <th>In Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="products-tbody">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: LOW STOCK ────────────────────────────────────────────────── -->
+  <section id="low-stock" class="section mt-6">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">⚠️ Low Stock Alerts</h2>
+        <span class="card-hint">Items requiring immediate attention</span>
+      </div>
+      <div id="low-stock-list" class="alert-cards">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: RESTOCK ORDER ────────────────────────────────────────────── -->
+  <section id="restock" class="section mt-6">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">🔄 Suggested Restock Order</h2>
+        <span class="card-hint">Auto-generated from low-stock items</span>
+      </div>
+
+      <div class="distributor-info" id="distributor-info">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="table-wrap mt-4">
+        <table class="inv-table" id="restock-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Distributor</th>
+              <th>Qty to Order</th>
+              <th>Cost per Unit</th>
+              <th>Total Cost</th>
+            </tr>
+          </thead>
+          <tbody id="restock-tbody">
+            <!-- Filled by JS -->
+          </tbody>
+          <tfoot id="restock-tfoot">
+            <!-- Filled by JS -->
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: PRICING & PROFIT ────────────────────────────────────────── -->
+  <section id="pricing" class="section mt-6">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">💰 Pricing & Profit Breakdown</h2>
+        <span class="card-hint">Retail price vs. selling price vs. margin</span>
+      </div>
+      <div class="table-wrap">
+        <table class="inv-table pricing-table" id="pricing-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Distributor Price</th>
+              <th>Selling Price</th>
+              <th>Profit / Unit</th>
+              <th>Margin %</th>
+              <th>Units Sold</th>
+              <th>Total Revenue</th>
+              <th>Total Profit</th>
+            </tr>
+          </thead>
+          <tbody id="pricing-tbody">
+            <!-- Filled by JS -->
+          </tbody>
+          <tfoot id="pricing-tfoot">
+            <!-- Filled by JS -->
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── RESTOCK MODAL ─────────────────────────────────────────────────────────── -->
+<div id="restock-modal" class="modal hidden">
+  <div class="modal-overlay" onclick="closeRestockModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🔄 Manual Restock Entry</h3>
+      <button onclick="closeRestockModal()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">Select Product</label>
+      <select class="form-select" id="modal-product"></select>
+      <label class="form-label mt-3">Quantity Received from Distributor</label>
+      <input type="number" class="form-input" id="modal-qty" min="1" value="1" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRestockModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRestock()">✅ Confirm Restock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SALE MODAL ─────────────────────────────────────────────────────────────── -->
+<div id="sale-modal" class="modal hidden">
+  <div class="modal-overlay" onclick="closeSaleModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🛒 Log Manual Sale</h3>
+      <button onclick="closeSaleModal()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">Product: <strong id="sale-product-name">—</strong></label>
+      <label class="form-label mt-3">Quantity Sold</label>
+      <input type="number" class="form-input" id="sale-qty" min="1" value="1" />
+      <input type="hidden" id="sale-product-id" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSaleModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitSale()">✅ Log Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST ─────────────────────────────────────────────────────────────────── -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

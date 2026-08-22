@@ -1,0 +1,14 @@
+{
+  "name": "telegram-bot-customer",
+  "version": "1.0.0",
+  "description": "VyaparSync Customer Telegram Bot — shopping catalog, cart, checkout & delivery tracking",
+  "main": "bot.ts",
+  "scripts": {
+    "start": "npx tsx bot.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "grammy": "^1.45.1"
+  }
+}
+

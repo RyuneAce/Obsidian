@@ -1,0 +1,17 @@
+{
+  "name": "telegram-bot-delivery",
+  "version": "1.0.0",
+  "description": "VyaparSync Delivery Agent Bot — order assignments, status updates & ratings",
+  "main": "bot.ts",
+  "scripts": {
+    "start": "npx tsx bot.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "grammy": "^1.45.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}

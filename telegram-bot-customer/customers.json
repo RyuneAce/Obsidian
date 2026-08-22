@@ -1,0 +1,231 @@
+[
+  {
+    "chatId": 6663642421,
+    "name": "A",
+    "username": "jenachrist",
+    "location": "Arpit",
+    "firstSeen": "2026-08-21T17:15:54.746Z",
+    "lastSeen": "2026-08-22T03:13:51.865Z",
+    "totalOrders": 5,
+    "totalSpent": 1729,
+    "customerType": "VIP Customer \ud83d\udc8e",
+    "loyaltyPoints": 282,
+    "orders": [
+      {
+        "orderId": "ORD-91938",
+        "items": [
+          {
+            "productId": "P01",
+            "name": "Aashirvaad Atta 5kg",
+            "price": 210,
+            "emoji": "\ud83c\udf3e",
+            "quantity": 1
+          },
+          {
+            "productId": "P02",
+            "name": "Tata Salt 1kg",
+            "price": 25,
+            "emoji": "\ud83e\uddc2",
+            "quantity": 1
+          }
+        ],
+        "subtotal": 235,
+        "discount": 25,
+        "totalCost": 210,
+        "paymentMethod": "Cash on Delivery",
+        "location": "Arpit",
+        "deliveryStatus": "Assigned",
+        "deliveryBoy": {
+          "name": "Assigning Partner...",
+          "phone": "+919876500000"
+        },
+        "timestamp": "2026-08-21T17:16:31.938Z"
+      },
+      {
+        "orderId": "ORD-65081",
+        "items": [
+          {
+            "productId": "P01",
+            "name": "Aashirvaad Atta 5kg",
+            "price": 210,
+            "emoji": "\ud83c\udf3e",
+            "quantity": 1
+          },
+          {
+            "productId": "P03",
+            "name": "Parle-G 100g",
+            "price": 10,
+            "emoji": "\ud83c\udf6a",
+            "quantity": 2
+          },
+          {
+            "productId": "P06",
+            "name": "Surf Excel 1kg",
+            "price": 180,
+            "emoji": "\ud83e\udee7",
+            "quantity": 1
+          },
+          {
+            "productId": "P05",
+            "name": "Maggi Noodles 70g",
+            "price": 14,
+            "emoji": "\ud83c\udf5c",
+            "quantity": 1
+          }
+        ],
+        "subtotal": 424,
+        "discount": 0,
+        "totalCost": 424,
+        "paymentMethod": "Cash on Delivery",
+        "location": "Arpit",
+        "deliveryStatus": "Assigned",
+        "deliveryBoy": {
+          "name": "Ramesh",
+          "phone": "Kumar"
+        },
+        "timestamp": "2026-08-21T17:24:25.081Z",
+        "shopRating": 5,
+        "deliveryRating": 3
+      },
+      {
+        "orderId": "ORD-00413",
+        "items": [
+          {
+            "productId": "P02",
+            "name": "Tata Salt 1kg",
+            "price": 25,
+            "emoji": "\ud83e\uddc2",
+            "quantity": 1
+          },
+          {
+            "productId": "P03",
+            "name": "Parle-G 100g",
+            "price": 10,
+            "emoji": "\ud83c\udf6a",
+            "quantity": 1
+          },
+          {
+            "productId": "P07",
+            "name": "Tata Tea Gold 250g",
+            "price": 95,
+            "emoji": "\ud83c\udf75",
+            "quantity": 1
+          },
+          {
+            "productId": "P05",
+            "name": "Maggi Noodles 70g",
+            "price": 14,
+            "emoji": "\ud83c\udf5c",
+            "quantity": 1
+          }
+        ],
+        "subtotal": 144,
+        "discount": 11,
+        "totalCost": 133,
+        "paymentMethod": "Cash on Delivery",
+        "location": "Arpit",
+        "deliveryStatus": "Pending Claim \u23f3",
+        "deliveryBoy": {
+          "name": "Assigning Partner...",
+          "phone": "+919876500000"
+        },
+        "timestamp": "2026-08-21T17:28:20.413Z"
+      },
+      {
+        "orderId": "ORD-08832",
+        "items": [
+          {
+            "productId": "P02",
+            "name": "Tata Salt 1kg",
+            "price": 25,
+            "emoji": "\ud83e\uddc2",
+            "quantity": 1
+          },
+          {
+            "productId": "P05",
+            "name": "Maggi Noodles 70g",
+            "price": 14,
+            "emoji": "\ud83c\udf5c",
+            "quantity": 1
+          },
+          {
+            "productId": "P06",
+            "name": "Surf Excel 1kg",
+            "price": 180,
+            "emoji": "\ud83e\udee7",
+            "quantity": 1
+          },
+          {
+            "productId": "P04",
+            "name": "Amul Butter 500g",
+            "price": 260,
+            "emoji": "\ud83e\uddc8",
+            "quantity": 1
+          }
+        ],
+        "subtotal": 479,
+        "discount": 28,
+        "totalCost": 451,
+        "paymentMethod": "Cash on Delivery",
+        "location": "MG Road, Bengaluru (Default)",
+        "deliveryStatus": "Delivered",
+        "deliveryBoy": {
+          "name": "Ankit",
+          "phone": "Rao"
+        },
+        "timestamp": "2026-08-21T17:30:08.832Z"
+      },
+      {
+        "orderId": "ORD-84086",
+        "items": [
+          {
+            "productId": "P01",
+            "name": "Aashirvaad Atta 5kg",
+            "price": 210,
+            "emoji": "\ud83c\udf3e",
+            "quantity": 1
+          },
+          {
+            "productId": "P02",
+            "name": "Tata Salt 1kg",
+            "price": 25,
+            "emoji": "\ud83e\uddc2",
+            "quantity": 1
+          },
+          {
+            "productId": "P04",
+            "name": "Amul Butter 500g",
+            "price": 260,
+            "emoji": "\ud83e\uddc8",
+            "quantity": 1
+          },
+          {
+            "productId": "P05",
+            "name": "Maggi Noodles 70g",
+            "price": 14,
+            "emoji": "\ud83c\udf5c",
+            "quantity": 1
+          },
+          {
+            "productId": "P08",
+            "name": "Colgate Toothpaste 200g",
+            "price": 85,
+            "emoji": "\ud83e\udea5",
+            "quantity": 1
+          }
+        ],
+        "subtotal": 594,
+        "discount": 83,
+        "totalCost": 511,
+        "paymentMethod": "Cash on Delivery",
+        "location": "Arpit",
+        "deliveryStatus": "Pending Claim \u23f3",
+        "deliveryBoy": {
+          "name": "Assigning Partner...",
+          "phone": "+919876500000"
+        },
+        "timestamp": "2026-08-22T03:13:04.087Z"
+      }
+    ]
+  }
+]

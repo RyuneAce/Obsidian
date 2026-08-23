@@ -706,14 +706,24 @@ The Data Lake should remain distinct from operational UI state while still servi
 The documented ecosystem contains the following major areas:
 
 ```text
-├── inventory/
+├── LittleShop/             # Main VyaparSync/Little Shop application
+│   ├── src/
+│   ├── index.html
+│   └── vite.config.js
+│
+├── customer-app/           # Secondary customer application
+│   ├── src/
+│   ├── index.html
+│   └── vite.config.ts
+│
+├── inventory/              # Legacy inventory server
 │   ├── app.js
 │   ├── index.html
 │   ├── inventory.json
 │   ├── server.js
 │   └── style.css
 │
-├── telegram-bot/
+├── telegram-bot/           # External commerce bots
 │   ├── telegram-bot-customer/
 │   │   ├── bot.ts
 │   │   ├── cart.ts

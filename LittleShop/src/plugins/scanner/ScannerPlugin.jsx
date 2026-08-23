@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { useNavigate } from 'react-router-dom';
 import InfoGate from '../../components/InfoGate';
 import { QueueService } from '../queue/QueueService';
+import { TransactionPersistenceService } from '../../services/TransactionPersistenceService';
 
 // --- PROMPT ---
 const SCANNER_PROMPT = `You are a universal business data extraction AI for a shopkeeper's application (HACQUIRE).
@@ -131,7 +132,7 @@ function ScannerView({ dataLake }) {
       
       try {
           const genAI = new GoogleGenerativeAI(currentApiKey);
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
           const imagePart = {
             inlineData: {
@@ -195,47 +196,7 @@ function ScannerView({ dataLake }) {
   const handleInfoGateComplete = async (taskId, finalResult) => {
       const txn = finalResult.transaction;
       try {
-          await dataLake.ledger.put(txn);
-          
-          if (txn.items && txn.items.length > 0 && (txn.transactionType === 'PURCHASE' || txn.transactionType === 'SALE')) {
-              for (const item of txn.items) {
-                 if (!item.productId && !item.name) continue;
-                 const qty = item.quantity || 0;
-                 if (qty <= 0) continue;
-                 
-                 const direction = txn.transactionType === 'PURCHASE' ? 'IN' : 'OUT';
-                 
-                 let productId = item.productId;
-                 const canonical = item.canonicalName || item.productVariantName || item.name;
-                 
-                 if (!productId) {
-                     const products = await dataLake.inventory.toArray();
-                     const existing = products.find(p => p.name.toLowerCase() === canonical.toLowerCase());
-                     if (existing) {
-                         productId = existing.productId;
-                     } else {
-                         productId = crypto.randomUUID();
-                         await dataLake.inventory.put({
-                             productId,
-                             name: canonical,
-                             category: item.category || 'General',
-                             minStock: 5,
-                             status: 'ACTIVE'
-                         });
-                     }
-                 }
-                 
-                 await dataLake.inventoryMovements.put({
-                     movementId: crypto.randomUUID(),
-                     productId: productId,
-                     type: txn.transactionType,
-                     direction: direction,
-                     quantity: qty,
-                     timestamp: Date.now(),
-                     notes: `From Scanner: ${txn.partyName}`
-                 });
-              }
-          }
+          await TransactionPersistenceService.saveTransaction(dataLake, txn, 'SCANNER');
           
           setReviewTasks(prev => prev.filter(t => t.id !== taskId));
           alert("Transaction saved successfully!");

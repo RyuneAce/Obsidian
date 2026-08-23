@@ -37,7 +37,7 @@ To prevent state drift (e.g., Inventory saying you have 10 items, but Ledger say
 ## 3. Bill OCR Integration
 
 The OCR Engine (`BillOcrPlugin.jsx`) connects the physical world to the DataLake.
-1. **Extraction**: Gemini 1.5 Flash accepts an image and a strict JSON schema.
+1. **Extraction**: Gemini 3.5 Flash Lite accepts an image and a strict JSON schema.
 2. **Parsing**: The backend ensures it identifies multiple unique parties and line-items.
 3. **Review**: The User intercepts the payload and corrects edge cases in a split-screen UI.
 4. **Commitment**: Upon confirmation, the plugin maps the JSON directly into standard Ledger transactions. 

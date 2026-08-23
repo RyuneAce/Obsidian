@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, Trash2, PlayCircle, PauseCircle, Trash } from 'lucide-react';
+import { Play, Pause, Trash2, Clock, CheckCircle, AlertTriangle, RefreshCw, X, PlayCircle, PauseCircle, Trash } from 'lucide-react';
 import InfoGate from '../../components/InfoGate';
+import { TransactionPersistenceService } from '../../services/TransactionPersistenceService';
 import { QueueService } from './QueueService';
 import dataLake from '../../datalake/Database';
 
@@ -83,6 +84,13 @@ function QueueView() {
 
     const onInfoGateComplete = async (result) => {
         if (activeJobId) {
+            try {
+                await TransactionPersistenceService.saveTransaction(dataLake, result.transaction, 'QUEUE');
+            } catch (e) {
+                alert("Failed to save queued transaction: " + e.message);
+                return;
+            }
+
             await queueService.setJobStatus(activeJobId, 'COMPLETED');
             setActiveJobId(null);
             setActiveJob(null);

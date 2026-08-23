@@ -7,6 +7,7 @@ import { VoiceService } from './VoiceService';
 import ApiKeyManager from './ApiKeyManager';
 import InfoGate from '../../components/InfoGate';
 import { QueueService } from '../queue/QueueService';
+import { TransactionPersistenceService } from '../../services/TransactionPersistenceService';
 
 export default function VoiceCommercePage({ dataLake }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,48 +166,7 @@ export default function VoiceCommercePage({ dataLake }) {
   const handleInfoGateComplete = async (taskId, finalResult) => {
       const txn = finalResult.transaction;
       try {
-          await dataLake.ledger.put(txn);
-          
-          if (txn.items && txn.items.length > 0 && (txn.transactionType === 'PURCHASE' || txn.transactionType === 'SALE')) {
-              for (const item of txn.items) {
-                 if (!item.productId && !item.name) continue;
-                 const qty = item.quantity || 0;
-                 if (qty <= 0) continue;
-                 
-                 const direction = txn.transactionType === 'PURCHASE' ? 'IN' : 'OUT';
-                 
-                 let productId = item.productId;
-                 const canonical = item.canonicalName || item.productVariantName || item.name;
-                 
-                 if (!productId) {
-                     const products = await dataLake.inventory.toArray();
-                     const existing = products.find(p => p.name.toLowerCase() === canonical.toLowerCase());
-                     if (existing) {
-                         productId = existing.productId;
-                     } else {
-                         productId = crypto.randomUUID();
-                         await dataLake.inventory.put({
-                             productId,
-                             name: canonical,
-                             category: item.category || 'General',
-                             minStock: 5,
-                             status: 'ACTIVE'
-                         });
-                     }
-                 }
-                 
-                 await dataLake.inventoryMovements.put({
-                     movementId: crypto.randomUUID(),
-                     productId: productId,
-                     type: txn.transactionType,
-                     direction: direction,
-                     quantity: qty,
-                     timestamp: Date.now(),
-                     notes: `Voice: ${txn.partyName}`
-                 });
-              }
-          }
-          
+          await TransactionPersistenceService.saveTransaction(dataLake, txn, 'VOICE');
           await updateTask(taskId, { status: 'SAVED', isExpanded: false });
           
       } catch (e) {

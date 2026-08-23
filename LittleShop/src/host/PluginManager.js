@@ -8,7 +8,6 @@ class PluginManager {
 
   initialize(dataLake) {
     this.dataLake = dataLake;
-    console.log("PluginManager initialized with DataLake.");
   }
 
   register(plugin) {
@@ -33,8 +32,6 @@ class PluginManager {
     if (plugin.dashboardWidgets && Array.isArray(plugin.dashboardWidgets)) {
       this.widgets.push(...plugin.dashboardWidgets);
     }
-
-    console.log(`Registered Plugin: ${plugin.name} v${plugin.version}`);
   }
 
   getRoutes() {

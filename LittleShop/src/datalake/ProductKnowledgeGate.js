@@ -264,7 +264,7 @@ export class ProductKnowledgeGate {
 
       try {
           const genAI = new GoogleGenerativeAI(this.apiKey);
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
           // 2. Gemini Typo / Normalization
           const stage1Result = await model.generateContent([AI_NORMALIZATION_PROMPT, `Products:\n${JSON.stringify([itemRawName])}`]);
@@ -386,7 +386,7 @@ export class ProductKnowledgeGate {
 
       try {
           const genAI = new GoogleGenerativeAI(this.apiKey);
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
           
           // STAGE 1: AI Normalization
           const stage1Inputs = unknownItemsStage0.map(i => i.rawName);

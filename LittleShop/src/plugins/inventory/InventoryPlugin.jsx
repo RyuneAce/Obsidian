@@ -4,6 +4,7 @@ import { Plus, Search, AlertTriangle, Edit2, CheckCircle, Trash2, ArrowRight, X,
 import { ProductKnowledgeGate } from '../../datalake/ProductKnowledgeGate';
 import InfoGate from '../../components/InfoGate';
 import { QueueService } from '../queue/QueueService';
+import { TransactionPersistenceService } from '../../services/TransactionPersistenceService';
 
 // Reusable Styles
 const labelStyle = { display: 'block', marginBottom: '8px', color: 'var(--text-muted)', fontSize: '13px' };
@@ -52,62 +53,7 @@ function AddInventoryFlow({ isOpen, onClose, dataLake }) {
   const handleCommitTxn = async (result) => {
       const txn = result.transaction;
       try {
-         const itemsToCommit = txn.items;
-         
-         // Write Raw Event
-         await dataLake.rawEvents.put({
-            eventId: txn.eventId,
-            source: 'INVENTORY_MANUAL',
-            timestamp: Date.now(),
-            payload: txn
-         });
-
-         const inventory = await dataLake.inventory.toArray();
-
-         for (let item of itemsToCommit) {
-            // Match against existing inventory by productVariantName / name
-            let targetName = item.productVariantName || item.name;
-            let existing = inventory.find(p => p.name === targetName);
-            
-            let finalProductId = existing ? existing.productId : ('prod_' + crypto.randomUUID());
-
-            if (!existing) {
-               await dataLake.inventory.put({
-                  productId: finalProductId,
-                  name: targetName,
-                  category: item.category || 'General',
-                  minStock: 5,
-                  status: 'ACTIVE'
-               });
-               // Push to local array so subsequent items in this txn match against it
-               inventory.push({
-                  productId: finalProductId,
-                  name: targetName,
-                  category: item.category || 'General',
-                  minStock: 5,
-                  status: 'ACTIVE'
-               });
-            }
-
-            await dataLake.inventoryMovements.put({
-               movementId: crypto.randomUUID(),
-               productId: finalProductId,
-               type: 'MANUAL_ADJUSTMENT',
-               direction: txn.transactionType === 'PURCHASE' ? 'IN' : 'OUT',
-               quantity: parseFloat(item.quantity) || 0,
-               timestamp: Date.now(),
-               notes: txn.notes,
-               rawInput: item.rawName || item.name
-            });
-         }
-         
-         // Write the ENTIRE transaction to Ledger
-         await dataLake.ledger.put({
-             ...txn,
-             direction: txn.transactionType === 'SALE' ? 'IN' : 'OUT',
-             partyType: 'EXTERNAL'
-         });
-         
+         await TransactionPersistenceService.saveTransaction(dataLake, txn, 'INVENTORY_MANUAL');
          alert("Transaction Successfully Committed.");
          onClose();
       } catch (e) {
@@ -173,55 +119,11 @@ function InventoryView({ dataLake }) {
   const apiKey = localStorage.getItem('gemini_api_key');
   const gate = useMemo(() => new ProductKnowledgeGate(dataLake, apiKey), [dataLake, apiKey]);
   const products = useMemo(() => {
-    const productMap = new Map();
-    const deletedProductIds = new Set();
-
-    rawProducts.forEach(p => {
-      if (p.status === 'DELETED') {
-         deletedProductIds.add(p.productId);
-      } else {
-         productMap.set(p.productId, { ...p, currentStock: 0 });
-      }
-    });
-
-    allLedgerTxns.forEach(txn => {
-      if (!txn.items) return;
-      txn.items.forEach(item => {
-        if (!item.productId || deletedProductIds.has(item.productId)) return;
-        
-        if (!productMap.has(item.productId)) {
-          productMap.set(item.productId, {
-            productId: item.productId,
-            name: item.canonicalName || item.name,
-            category: 'General',
-            minStock: 5,
-            currentStock: 0
-          });
-        }
-
-        const p = productMap.get(item.productId);
-        const qty = parseFloat(item.quantity) || 0;
-        const isSale = txn.direction === 'IN';
-        
-        if (isSale) {
-          p.currentStock -= qty;
-        } else {
-          p.currentStock += qty;
-        }
-      });
-    });
-
-    allMovements.forEach(m => {
-      if (deletedProductIds.has(m.productId)) return;
-      const p = productMap.get(m.productId);
-      if (p) {
-        const effect = m.direction === 'IN' ? m.quantity : -m.quantity;
-        p.currentStock += effect;
-      }
-    });
-
-    return Array.from(productMap.values());
-  }, [rawProducts, allLedgerTxns, allMovements]);
+    return rawProducts.filter(p => p.status !== 'DELETED').map(p => ({
+        ...p,
+        currentStock: p.currentStock || 0
+    }));
+  }, [rawProducts]);
 
   // Aggregate by Category -> Family -> Product
   const groupedInventory = useMemo(() => {
@@ -455,6 +357,12 @@ function InventoryView({ dataLake }) {
               const newQty = parseFloat(formToUse.quantity);
               if (newQty !== p.currentStock) {
                   const diff = newQty - p.currentStock;
+                  
+                  // Update mutable stock property
+                  await dataLake.inventory.update(p.productId, {
+                      currentStock: newQty
+                  });
+                  
                   await dataLake.inventoryMovements.put({
                        movementId: crypto.randomUUID(),
                        productId: targetProductId,
@@ -511,6 +419,13 @@ function InventoryView({ dataLake }) {
      try {
         const resolution = await gate.resolveProduct(u.rawName);
         if (resolution && resolution.confidence === 1.0) {
+            const existingInv = await dataLake.inventory.get(resolution.productId);
+            if (existingInv) {
+                await dataLake.inventory.update(resolution.productId, {
+                    currentStock: (existingInv.currentStock || 0) + u.quantity
+                });
+            }
+
             await dataLake.inventoryMovements.put({
                movementId: crypto.randomUUID(),
                productId: resolution.productId,

@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
+.gradle/
+local.properties
 
 # Editor directories and files
 .vscode/*

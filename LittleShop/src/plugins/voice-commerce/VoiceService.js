@@ -65,7 +65,7 @@ export class VoiceService {
     if (!this.geminiKey) throw new Error("Gemini API Key is required");
 
     const genAI = new GoogleGenerativeAI(this.geminiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const result = await model.generateContent([
       VOICE_PROMPT,

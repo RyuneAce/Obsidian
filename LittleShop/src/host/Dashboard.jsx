@@ -21,34 +21,12 @@ function ActionAttentionWidget({ dataLake }) {
     const inventory = useLiveQuery(() => dataLake.inventory.toArray(), []) || [];
     const queueJobs = useLiveQuery(() => dataLake.queueJobs.toArray(), []) || [];
     const voiceRecordings = useLiveQuery(() => voiceDb.recordings.toArray(), []) || [];
-    const allLedger = useLiveQuery(() => dataLake.ledger.toArray(), []) || [];
-
-    const actions = [];
+    const activeInv = inventory.filter(i => i.status !== 'DELETED').map(i => ({
+        ...i,
+        calculatedStock: i.currentStock || 0
+    }));
     
-    const productMap = new Map();
-    inventory.forEach(p => productMap.set(p.productId || p.name, { ...p, calculatedStock: 0 }));
-    allLedger.forEach(txn => {
-        (txn.items || []).forEach(item => {
-            let pid = item.productId;
-            if (!pid) {
-                const itemName = item.canonicalName || item.name;
-                if (itemName) {
-                    const invMatch = inventory.find(i => i.name && i.name.toLowerCase() === itemName.toLowerCase());
-                    if (invMatch) pid = invMatch.productId;
-                }
-            }
-            if (pid && productMap.has(pid)) {
-                const p = productMap.get(pid);
-                const qty = Number(item.quantity || 0);
-                if (txn.transactionType === 'SALE') {
-                    p.calculatedStock -= qty;
-                } else if (txn.transactionType === 'PURCHASE') {
-                    p.calculatedStock += qty;
-                }
-            }
-        });
-    });
-    const activeInv = Array.from(productMap.values());
+    const actions = [];
     const realOutOfStock = activeInv.filter(i => i.calculatedStock <= 0);
     const realLowStock = activeInv.filter(i => i.calculatedStock > 0 && i.calculatedStock <= (i.minStock || 5));
 
@@ -142,29 +120,10 @@ function TodaySnapshotWidget({ dataLake }) {
 function InventorySnapshotWidget({ dataLake }) {
     const [viewIndex, setViewIndex] = useState(0);
     const inventory = useLiveQuery(() => dataLake.inventory.toArray(), []) || [];
-    const allLedger = useLiveQuery(() => dataLake.ledger.toArray(), []) || [];
-
-    const productMap = new Map();
-    inventory.forEach(p => productMap.set(p.productId || p.name, { ...p, calculatedStock: 0 }));
-    allLedger.forEach(txn => {
-        (txn.items || []).forEach(item => {
-            let pid = item.productId;
-            if (!pid) {
-                const itemName = item.canonicalName || item.name;
-                if (itemName) {
-                    const invMatch = inventory.find(i => i.name && i.name.toLowerCase() === itemName.toLowerCase());
-                    if (invMatch) pid = invMatch.productId;
-                }
-            }
-            if (pid && productMap.has(pid)) {
-                const p = productMap.get(pid);
-                const qty = Number(item.quantity || 0);
-                if (txn.transactionType === 'SALE') p.calculatedStock -= qty;
-                else if (txn.transactionType === 'PURCHASE') p.calculatedStock += qty;
-            }
-        });
-    });
-    const activeInv = Array.from(productMap.values());
+    const activeInv = inventory.filter(i => i.status !== 'DELETED').map(i => ({
+        ...i,
+        calculatedStock: i.currentStock || 0
+    }));
     
     const totalProducts = activeInv.length;
     const outOfStock = activeInv.filter(i => i.calculatedStock <= 0).length;

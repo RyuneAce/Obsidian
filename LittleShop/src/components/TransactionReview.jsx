@@ -29,6 +29,9 @@ export default function TransactionReview({ initialTransaction, onConfirm, onCan
         
         return {
             ...inputTxn,
+            eventId: inputTxn.eventId || crypto.randomUUID(),
+            partyName: inputTxn.partyName || inputTxn.party?.name || '',
+            partyType: inputTxn.partyType || inputTxn.party?.type || 'CUSTOMER',
             party: inputTxn.party || { name: inputTxn.partyName || '', phone: inputTxn.partyPhone || '' },
             date: inputTxn.date || defaultDate,
             time: inputTxn.time || defaultTime,
@@ -108,7 +111,12 @@ export default function TransactionReview({ initialTransaction, onConfirm, onCan
 
     const handlePartyChange = (field, value) => {
         if (readOnly) return;
-        setTxn({ ...txn, party: { ...txn.party, [field]: value } });
+        setTxn(prev => {
+            const newTxn = { ...prev, party: { ...prev.party, [field]: value } };
+            if (field === 'name') newTxn.partyName = value;
+            if (field === 'type') newTxn.partyType = value;
+            return newTxn;
+        });
     };
 
     const handleUseGPS = () => {

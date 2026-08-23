@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { FileText, Search, Filter, Trash2, Edit2, Plus, X, User, ChevronDown, ChevronUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import TransactionReview from '../../components/TransactionReview';
 import InfoGate from '../../components/InfoGate';
+import { TransactionPersistenceService } from '../../services/TransactionPersistenceService';
 import { QueueService } from '../queue/QueueService';
 import Select from '../../components/ui/Select';
 import AnimatedCollapse from '../../components/ui/AnimatedCollapse';
@@ -231,7 +232,7 @@ function LedgerView({ dataLake }) {
         txn.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         txn.eventId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         txn.referenceId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        txn.items?.some(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        txn.items?.some(i => (i.name || i.productVariantName || '').toLowerCase().includes(searchTerm.toLowerCase()));
         
       // 2. Direction Filter
       const dirMatch = filterDirection === 'ALL' || txn.direction === filterDirection;
@@ -279,9 +280,17 @@ function LedgerView({ dataLake }) {
     if (!txnToReverse.items || txnToReverse.items.length === 0) return;
     
     const revDirection = txnToReverse.transactionType === 'PURCHASE' ? 'OUT' : 'IN';
+    const inventory = await dataLake.inventory.toArray();
     
     for (const item of txnToReverse.items) {
       if (item.productId) {
+         const existing = inventory.find(p => p.productId === item.productId);
+         if (existing) {
+             const qty = parseFloat(item.quantity) || 0;
+             existing.currentStock = (existing.currentStock || 0) + (revDirection === 'IN' ? qty : -qty);
+             await dataLake.inventory.put(existing);
+         }
+
          await dataLake.inventoryMovements.put({
             movementId: crypto.randomUUID(),
             productId: item.productId,
@@ -310,55 +319,20 @@ function LedgerView({ dataLake }) {
 
     finalTxn.items = finalTxn.items?.filter(i => i.name || i.productVariantName || i.canonicalName) || [];
 
-    if (editingTxn) {
-        const oldTxn = await dataLake.ledger.get(txnData.eventId);
-        if (oldTxn) {
-            await reverseTransactionInventory(oldTxn);
+    try {
+        if (editingTxn) {
+            const oldTxn = await dataLake.ledger.get(txnData.eventId);
+            if (oldTxn) {
+                await reverseTransactionInventory(oldTxn);
+            }
         }
+        
+        await TransactionPersistenceService.saveTransaction(dataLake, finalTxn, 'LEDGER_MANUAL');
+        setModalOpen(false);
+    } catch (e) {
+        console.error("Failed to save ledger transaction", e);
+        alert("Failed to save transaction: " + e.message);
     }
-    
-    const inventory = await dataLake.inventory.toArray();
-    for (const item of finalTxn.items) {
-       let targetName = item.productVariantName || item.canonicalName || item.name;
-       let existing = inventory.find(p => p.name === targetName);
-       let finalProductId = item.productId || (existing ? existing.productId : ('prod_' + crypto.randomUUID()));
-
-       if (!existing && !item.productId) {
-          await dataLake.inventory.put({
-             productId: finalProductId,
-             name: targetName,
-             category: item.category || 'General',
-             minStock: 5,
-             status: 'ACTIVE'
-          });
-          inventory.push({ productId: finalProductId, name: targetName });
-       }
-       
-       item.productId = finalProductId;
-
-       await dataLake.inventoryMovements.put({
-          movementId: crypto.randomUUID(),
-          productId: finalProductId,
-          type: 'MANUAL_ADJUSTMENT',
-          direction: finalTxn.transactionType === 'PURCHASE' ? 'IN' : 'OUT',
-          quantity: parseFloat(item.quantity) || 0,
-          timestamp: Date.now(),
-          notes: finalTxn.notes || (editingTxn ? `Updated via Ledger Edit ${finalTxn.referenceId}` : `Ledger Txn ${finalTxn.referenceId}`),
-          rawInput: item.rawName || item.name
-       });
-    }
-
-    if (!editingTxn) {
-        await dataLake.rawEvents.put({
-            eventId: finalTxn.eventId,
-            source: 'LEDGER_MANUAL',
-            timestamp: Date.now(),
-            payload: finalTxn
-        });
-    }
-    
-    await dataLake.ledger.put(finalTxn);
-    setModalOpen(false);
   };
 
   const deleteTransaction = async (txnToDelete) => {

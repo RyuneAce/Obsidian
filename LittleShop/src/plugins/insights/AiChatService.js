@@ -17,7 +17,7 @@ export class AiChatService {
 
     try {
       const genAI = new GoogleGenerativeAI(this.geminiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
       // Build system prompt and context
       const systemPrompt = `You are AI Insights, an intelligent business analytical layer for a shop.

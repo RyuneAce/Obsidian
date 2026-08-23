@@ -529,11 +529,13 @@ The ecosystem includes:
 ```text
 Little Shop
     |
+    +---- Customer Web App (customer-app/)     ← Web storefront for customers
+    |
     +---- Live Inventory
     |
-    +---- Customer Telegram Bot
+    +---- Customer Telegram Bot               ← Conversational shopping on Telegram
     |
-    +---- Delivery Telegram Bot
+    +---- Delivery Telegram Bot               ← Dispatch & fulfillment for riders
     |
     +---- Data Lake
     |
@@ -542,125 +544,261 @@ Little Shop
 
 ---
 
-# 14. Telegram Customer Bot
+# 13A. Customer Web App (`customer-app/`)
 
-The customer bot provides an interactive shopping experience.
+The **Customer Web App** is a React + TypeScript + Vite storefront that gives customers a browser-based shopping experience — a complement to the Telegram bot.
 
-## Catalog
+## Tech Stack
 
-Customers can:
+- **React 19** with TypeScript
+- **Vite** as the development and build server
+- **Tailwind CSS** for styling
+- **Lucide React** for icons
 
-- Browse categories
-- Search products
-- Add items to carts
-- Change quantities
-- Remove items
-- See real-time stock limits
+## What it does
 
-Example categories include:
+The customer app is a self-contained single-page application (SPA) focused on the customer purchasing journey:
 
-- Staples
-- Snacks
-- Dairy
-- Home Care
-- Beverages
-- Personal Care
+### Shop Tab
 
-## Cart
+- Browse a live product catalog with **bilingual names** (Hindi + English) across categories:
+  - 🌾 Staples · 🥛 Dairy · 🍪 Snacks · 🧼 Home Care · 🍵 Beverages · 💅 Personal Care
+- **Real-time search** to filter products by name or category
+- Products display **original price vs. discounted price**, stock availability, and estimated delivery ETA
+- Add / remove items from cart with `+` / `−` inline controls
+- Apply **promo codes** at checkout for discounts
+- Choose **payment method:** Cash on Delivery (COD), UPI, or Khata (credit)
+- **QR code** displayed for UPI payments
+- Barcode / QR **scan-to-add** support for quick product lookup
 
-Cart controls include:
+### Orders Tab
 
-- Increase quantity
-- Decrease quantity
-- Remove item
-- Real-time stock validation
+- View all past and active orders
+- See real-time delivery status (Placed → Out for Delivery → Delivered)
+- Track assigned rider name and phone number
 
-## Dynamic pricing
+### Khata Tab
 
-The ecosystem supports:
+- Credit / buy-now-pay-later account management for trusted customers
 
-- Multi-tier bulk discounts
-- BOGO offers
-- Combo bundles
-- Customer loyalty perks
+## Language Support
 
-## Checkout
+The app has a built-in `LanguageContext` supporting both **Hindi** and **English** UI, making it accessible to local shopkeepers and customers.
 
-The checkout flow includes:
+## Running the Customer App
 
-```text
-Name
-  ↓
-Phone
-  ↓
-Delivery Address
-  ↓
-Delivery Notes
-  ↓
-Promo Code
-  ↓
-Final Bill Review
+```bash
+cd customer-app
+npm install
+npm run dev
 ```
-
-## Promotions
-
-The existing ecosystem defines five promo codes:
-
-```text
-WELCOME50
-OBSIDIAN20
-FREESHIP
-DIWALI100
-MEGA15
-```
-
-## Other customer features
-
-- 10-minute order cancellation
-- Automatic inventory restoration after cancellation
-- 1-tap reorder
-- Scheduled deliveries
-- Recurring deliveries
-- Referral program
-- Refund flow with photo proof
-- Store quality ratings
-- Delivery rider ratings
 
 ---
 
-# 15. Telegram Delivery Agent Bot
+# 14. Telegram Customer Bot (`telegram-bot-customer/`)
 
-The delivery bot manages delivery-partner operations.
+The **Telegram Customer Bot** is an enterprise-grade conversational storefront built with **TypeScript + grammY**. It provides the full shopping experience directly inside Telegram — no app install required.
 
-## Dispatch
+> Built to serve hyper-local retail, each order placed through this bot automatically syncs inventory, dispatches riders, and flows into the analytics data lake.
 
-Orders can be broadcast to registered delivery agents.
+## What customers can do
 
-Agents can claim available orders through the claim pool.
+### 🛍️ Product Catalog & Search
 
-## Delivery lifecycle
+- Browse products in category tabs: **🌾 Staples, 🍪 Snacks, 🧈 Dairy, 🫧 Home Care, ☕ Beverages, 🧹 Personal Care**
+- **Fuzzy search** with `/search <query>` (e.g. `/search maggi`, `/search butter`)
+- Real-time **stock badge**: out-of-stock items are unclickable; low-stock shows remaining units
+
+### 🛒 Cart Management
+
+- Add / remove items with inline `[ ➖ ]` `[ ➕ ]` `[ 🗑️ ]` buttons directly inside `/cart`
+- Inventory-limit enforcement prevents overselling
+- Cart UI edits in-place without spamming the chat
+
+### 💰 Dynamic Pricing & Loyalty Engine
+
+| Offer Type | Example |
+|:---|:---|
+| Quantity bulk discount | Buy 3+ Parle-G → 15% off |
+| BOGO deal | Buy 2 Maggi → Get 1 Free |
+| Bundle combo | Atta + Tata Salt → Flat ₹25 OFF |
+| Threshold deal | Orders ₹500+ → Free delivery + ₹30 off |
+
+**Customer Tiers:**
+- 🌱 New Customer (0 orders) → 50 welcome points
+- 🛍️ Returning Customer (1–2 orders)
+- ⭐ Regular Customer (3+ orders or ₹800+ spent) → ₹15 loyalty discount per order
+- 💎 VIP Customer (5+ orders or ₹2000+ spent) → Automatic 10% off all orders
+
+### 🧾 5-Step Checkout Flow
 
 ```text
-Order
-  |
-Broadcast
-  |
-Claim
-  |
-Start Delivery
-  |
-Delivered
+1. Payment Mode (COD or UPI with QR code)
+   ↓
+2. Customer Name (auto-populates previous)
+   ↓
+3. Phone Number
+   ↓
+4. Delivery Address (or 1-tap saved address)
+   ↓
+5. Order Notes → Promo Code → Final Bill Review
 ```
 
-The rider can also see customer notes such as delivery instructions.
+### 🎟️ Promo Codes & Referral Program
 
-## Rider performance
+| Code | Discount |
+|:---|:---|
+| `WELCOME50` | Flat ₹50 OFF |
+| `OBSIDIAN20` | 20% OFF (Max ₹100) |
+| `FREESHIP` | Free delivery (₹30 OFF) |
+| `DIWALI100` | ₹100 OFF (min cart ₹500) |
+| `MEGA15` | 15% OFF (Max ₹75) |
 
-The system supports:
+- **Referral system `/refer`:** generates unique codes (e.g. `REF-AMIT123`). Both referrer and new user earn **+50 loyalty points**.
 
-- Customer review feeds
-- Aggregate rider ratings
-- Delivery performance information
+### ❌ 10-Minute Order Cancellation
+
+- Cancel within 10 minutes of placing (`/cancel`)
+- Automatically restores product quantities in inventory
+- Broadcasts cancellation alert to delivery agents in real-time
+- Reverts loyalty points
+
+### 📅 Scheduled & Recurring Deliveries
+
+- Pick products, select delivery days (Every Day / Weekdays / Weekends / custom), and choose time slot (Morning / Afternoon / Evening)
+- Manage active schedules with `/schedule`
+
+### 🔁 1-Tap Reorder
+
+- `/reorder` shows last 5 completed orders
+- One tap validates live stock and copies items into the active cart
+
+### 📸 Refund & Return
+
+- `/refund` — select items from order history, choose a reason (Damaged, Wrong Item, Expired, Missing)
+- Attach **photo proof** via Telegram
+- Auto-generates trackable refund ticket (e.g. `REF-12345`)
+
+### ⭐ Dual Rating System
+
+- Rate **Store & Product Quality** (1–5 ⭐) → +10 loyalty points
+- Rate **Delivery Rider** (1–5 ⭐) → +10 loyalty points
+- Optional text feedback pushed to rider profiles
+
+## Bot Commands
+
+| Command | Description |
+|:---|:---|
+| `/start` | Welcome banner, active deals, main menu |
+| `/order` | Open product catalog |
+| `/search <q>` | Fuzzy product search |
+| `/cart` | View & edit cart |
+| `/confirm` | Start checkout flow |
+| `/cancel` | Cancel order (within 10 min) |
+| `/reorder` | 1-tap re-order from history |
+| `/schedule` | Manage recurring deliveries |
+| `/track` | Live tracking + rider contact |
+| `/profile` | Tier, points, order history |
+| `/deals` | View active discounts & combos |
+| `/refer` | View & share referral code |
+| `/refund` | Submit refund with photo |
+| `/feedback` | Rate store + delivery |
+| `/help` | FAQ & store contact |
+
+---
+
+# 15. Telegram Delivery Agent Bot (`telegram-bot-delivery/`)
+
+The **Telegram Delivery Agent Bot** is a real-time dispatch and fulfillment system built with **TypeScript + grammY** for hyper-local delivery riders.
+
+> When a customer places an order on the Customer Bot, an instant broadcast is pushed to all logged-in delivery agents — zero manual coordination.
+
+## What riders can do
+
+### 🔐 Agent Authentication
+
+- Quick 1-tap profile selection from registered rider roster
+- Persistent sessions survive bot restarts (`agents.json`)
+- Re-login seamlessly; logout with `/logout`
+
+### 📡 Instant Dispatch Broadcasts
+
+- Real-time order alert the moment a customer places an order
+- Broadcast includes: Order ID, Customer Name, Loyalty Tier, Delivery Address, Item Summary, Total, and Payment Mode
+
+### ✋ Order Claiming Pool
+
+- 1-tap claim: `"✋ Taken (Claim This Order)"`
+- Race condition prevention — bot verifies no other agent has already claimed it
+- Customer immediately receives notification with rider's name and vehicle details
+
+### 🚀 Real-Time Status Updates
+
+Simple state machine with inline buttons:
+
+```text
+Pending Claim
+     |
+  [✋ Claim]
+     |
+  Assigned
+     |
+  [🚀 Start Delivery]  →  pushes ETA + rider contact to customer
+     |
+ Out For Delivery
+     |
+  [✅ Mark Delivered]  →  triggers customer rating prompt
+     |
+   Delivered
+```
+
+### 📊 Rich Customer Context (Parquet Integration)
+
+Before delivery, riders see:
+- Customer tier (New / Returning / Regular / VIP)
+- Lifetime order count and loyalty points
+- Delivery notes and special instructions
+- Payment type clarity: `📱 UPI (Prepaid)` or `💵 COD — Collect ₹X`
+- Applied promo code (so rider can explain discounts)
+
+### 📈 Rider Performance Scorecards
+
+- `/stats` — Total deliveries, completion rate, earnings, average star rating
+- `/reviews` — Live customer ratings and qualitative feedback feed
+- `/history` — Chronological delivery log with earnings per trip
+
+## Bot Commands
+
+| Command | Description |
+|:---|:---|
+| `/start` | Select agent profile or view dashboard |
+| `/orders` / `/active` | Active orders assigned to you |
+| `/available` / `/pool` | Unclaimed orders in the claim pool |
+| `/history` | Completed delivery history |
+| `/stats` / `/scorecard` | Ratings, earnings, delivery count |
+| `/reviews` / `/ratings` | Customer feedback feed |
+| `/logout` | Log out of agent profile |
+| `/help` | Operational handbook & FAQs |
+
+## Order Lifecycle
+
+```text
+Customer places order
+        |
+   [Pending Claim] ←——— Customer cancels within 10 min ——→ [Cancelled]
+        |
+   Rider claims
+        |
+   [Assigned]
+        |
+   Rider starts delivery
+        |
+   [Out For Delivery] → pushes ETA to customer
+        |
+   Rider marks delivered
+        |
+   [Delivered] → customer rating prompt fires
+```
 
 ---
 

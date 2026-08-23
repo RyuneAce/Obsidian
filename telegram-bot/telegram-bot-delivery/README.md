@@ -147,9 +147,8 @@ telegram-bot-delivery/
 Create a `.env` file inside `telegram-bot-delivery/` based on `.env.example`:
 
 ```env
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
+TELEGRAM_BOT_TOKEN=your_delivery_bot_token_here
 TELEGRAM_CHAT_ID=optional_agent_group_or_personal_chat_id
-PYTHON_PATH=C:/Users/KIIT/AppData/Local/Python/bin/python.exe
 ```
 
 ---

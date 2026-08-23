@@ -204,9 +204,8 @@ telegram-bot-customer/
 Create a `.env` file inside `telegram-bot-customer/` based on `.env.example`:
 
 ```env
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
+TELEGRAM_BOT_TOKEN=your_customer_bot_token_here
 TELEGRAM_CHAT_ID=optional_startup_notification_chat_id
-PYTHON_PATH=C:/Users/KIIT/AppData/Local/Python/bin/python.exe
 ```
 
 ---
